@@ -6,8 +6,8 @@
 
 ## Credits
 Inspired by numerous projects that strive to make all of our lives a little easier including:
-  - iosecurityio for creating the stig_converter tool, much of which I use in the parsing portion of this project [Github link](https://gist.github.com/iosecurityio/stig_converter) (I also stole the legal blurb at the bottom. SNS)
-  - leeclay95 for various portions of his Estig_tool project that added insight to my overall project. [Github link](https://gist.github.com/leeclay95/Estig_tool)
+  - iosecurityio for creating the stig_converter tool, much of which I use in the parsing portion of this project [Github link](https://github.com/iosecurityio/stig_converter) (I also stole the legal blurb at the bottom. SNS)
+  - leeclay95 for various portions of his Estig_tool project that added insight to my overall project. [Github link](https://github.com/leeclay95/Estig_tool)
 
 
 
