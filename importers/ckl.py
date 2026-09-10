@@ -10,7 +10,7 @@ from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 # pip install defusedxml
 from defusedxml import ElementTree as ET
 
-from stig_ingest.model import (
+from model.Unified_Data import (
     Asset,
     Checklist,
     ChecklistFormat,
