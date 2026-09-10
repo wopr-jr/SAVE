@@ -1,22 +1,30 @@
-from dataclasses import dataclass
-from enum import enum
-from typing import List
-from Pydantic import uuid
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import List, Any
+from uuid import UUID, uuid4
+
 
 
 ## RULES
+
+class Checklist(Enum):
+    ckl = 0
+    cklb = 1
+    csv = 2
+    xccdf =3
 
 class Severity(Enum):
     unknown = 0
     low = 1
     medium = 2
-    three = 3
+    high = 3
+    critical = 4
 
 class Status(Enum):
-    not_reviewed = 0
-    not_applicable = 1
-    open = 2
-    not_a_finding = 3
+    NF = 0
+    NA = 1
+    OP = 2
+    NR = 3
 
 @dataclass
 class STIG_CHECK_REFERENCE:
@@ -32,8 +40,8 @@ class STIG_GROUP:
 
 @dataclass
 class STIG_OVERRIDE:
-    additional_properties = bool
-    pattern_properties = 
+    additional_properties: bool = False
+    pattern_properties = dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class RULE_PROPERTIES:
@@ -120,7 +128,7 @@ class RULE_PROPERTIES:
 @dataclass
 class STIG_RULE:
     description: str
-    additional_properties: bool
+    additional_properties: bool = False
     properties: RULE_PROPERTIES
 
 ## STIGS
@@ -136,19 +144,19 @@ class STIG_PROPERTIES:
     # The release info taken from the origin STIG, usually contains the STIG version and release date
     release_info: str
     # Identifier used for a specific STIG
-    uuid: uuid.UUID
+    uuid: UUID
     # The reference id from the first rule in the checklist
     reference_identifier: str | None = None
     # The TOTAL number of rules in the origin STIG, even if rules were cherrypicked.
-    size: int
+    size: int | None = None
     # The list of STIGs
     rules: STIG_RULE
     
 @dataclass
 class STIG:
     description: str
-    type: object
-    additional_properties: bool
+    type: STIG_PROPERTIES
+    additional_properties: bool = False
     required: List[str] = ["stig_name","display_name","stig_id","release_info","uuid","size"]
     properties: STIG_PROPERTIES
 
@@ -173,8 +181,8 @@ class ASSET_PROPERTIES:
 @dataclass
 class TARGET_ASSET:
     description: str
-    type: object
-    additional_properties: bool
+    type: ASSET_PROPERTIES
+    additional_properties: bool = False
     required: List[str] | None = None
     properties: ASSET_PROPERTIES
 
@@ -185,43 +193,31 @@ class CHECKLIST_PROPERTIES:
     # The STIG filename when it was last saved
     title: str
     # [Optional] Checklist type (cklb, ckl, csv, etc) 
-    checklist_type: str
+    checklist_type: Checklist
     # [Optional] Checklist version
     checklist_version: str = "1.0"
     # [Optional] Properties of the scanned system
-    target_data: TARGET_ASSET
+    target_data: TARGET_ASSET | None = None
     # [Optional] A list of STIGs contained in the checklist
-    stigs: List[STIG]
+    stigs: List[STIG] | None = None
 
-@dataclass
-class CKL_PROPERTIES(CHECKLIST_PROPERTIES):
-    # [Optional] Checklist type (cklb, ckl, csv, etc) 
-    checklist_type: str = 'ckl'
-
-@dataclass
-class CKL_CHECKLIST:
-    properties: CKL_PROPERTIES
-
-@dataclass
-class CKLB_PROPERTIES(CHECKLIST_PROPERTIES):
-    # [Optional] Checklist type (cklb, ckl, csv, etc) 
-    checklist_type: str = 'cklb'
+    ## CKLB specific properties
     # UUID of the checklist
-    id: uuid.UUID
+    id: UUID = field(default_factory=uuid4)
     # [Optional] for internal use by SV3
-    active: bool
+    active: bool | None = None
     # [Optional] Used by SV3 to track if the checklist is in build or fill mode
-    mode: int
+    mode: int | None = None
     # [Optional] for internal use by SV3
-    has_path: bool
-
+    has_path: bool | None = None
+    
 @dataclass
-class CKLB_CHECKLIST:
-    schema: str
-    title: str
-    description: str
-    additional_properties: bool
-    required: List[str] = ["title", "id"]
-    properties: CKLB_PROPERTIES
+class CHECKLIST:
+    schema: str | None = None
+    title: str | None = None
+    description: str | None = None
+    additional_properties: bool = False
+    required: List[str] | None = None
+    properties: CHECKLIST_PROPERTIES
 
 
