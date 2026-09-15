@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from uuid import UUID, uuid4
 
-from SAVE/model/stig_rule import *
+from SAVE.model.StigRule import StigRule
 
 @dataclass(slots=True)
 class Stig:

@@ -5,7 +5,8 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID, uuid4
 
-from SAVE/model/stig import *
+from SAVE.model.Stig import Stig
+from SAVE.model.Asset import Asset
 
 class ChecklistFormat(str, Enum):
     CKL = "ckl"
