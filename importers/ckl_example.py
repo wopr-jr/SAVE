@@ -1,5 +1,5 @@
 from pathlib import Path
-from stig_ingest.importers.ckl import import_ckl
+from SAVE.importers.ckl import import_ckl
 
 result = import_ckl(Path("RHEL_9_STIG_Checklist.ckl"))
 

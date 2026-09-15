@@ -3,10 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from stig_ingest.model import (
-    Checklist,
-    FindingStatus,
-)
+from SAVE.model.Checklist import Checklist
 
 
 def export_cklb(

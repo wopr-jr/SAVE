@@ -1,4 +1,4 @@
-from stig_ingest.importers.cklb import import_cklb
+from SAVE.importers.cklb import import_cklb
 
 result = import_cklb("RHEL_9_STIG_Assessment.cklb")
 

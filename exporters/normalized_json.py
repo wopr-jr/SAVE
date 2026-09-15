@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from stig_ingest.model import Checklist
-from stig_ingest.exporters.common import to_primitive
+from SAVE.model.Checklist import Checklist
+from SAVE.exporters.common import to_primitive
 
 
 NORMALIZED_SCHEMA_VERSION = "0.1"

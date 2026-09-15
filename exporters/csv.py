@@ -3,7 +3,7 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-from stig_ingest.model import Checklist
+from SAVE.model.Checklist import Checklist
 
 
 CSV_COLUMNS = [
