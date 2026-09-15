@@ -13,9 +13,9 @@ from SAVE.modules.import_stig import (
     import_file,
 )
 
-from SAVE.modules.export_cklb import export_cklb
-from SAVE.modules.export_csv import export_csv
-from SAVE.modules.export_normalized_json import export_normalized_json
+from SAVE.exporters.cklb import export_cklb
+from SAVE.exporters.csv import export_csv
+from SAVE.exporters.normalized_json import export_normalized_json
 
 
 EXIT_SUCCESS = 0

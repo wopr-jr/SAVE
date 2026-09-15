@@ -9,11 +9,12 @@ from uuid import UUID
 
 from defusedxml import ElementTree as ET
 
-from save_core.model import Asset, Checklist, ChecklistFormat
-from save_core.importers.ckl import import_ckl
-from save_core.importers.cklb import import_cklb
-from save_core.importers.csv_importer import CsvColumnMap, import_csv
-from save_core.importers.xccdf import import_xccdf
+from SAVE.model.Asset import Asset
+from SAVE.model.Checklist import Checklist, ChecklistFormat
+from SAVE.importers.ckl import import_ckl
+from SAVE.importers.cklb import import_cklb
+from SAVE.importers.csv_importer import CsvColumnMap, import_csv
+from SAVE.importers.xccdf import import_xccdf
 
 
 class ImportFormat(str, Enum):
