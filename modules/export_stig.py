@@ -9,7 +9,7 @@ from typing import Any, Callable
 
 
 from SAVE.exporters.cklb import export_cklb
-from SAVE.exporters.csv_exporter import export_csv
+from SAVE.exporters.csv import export_csv
 from SAVE.exporters.normalized_json import export_normalized_json
 
 
