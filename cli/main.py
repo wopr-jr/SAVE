@@ -19,11 +19,7 @@ from SAVE.modules.import_stig import (
 
 
 
-EXIT_SUCCESS = 0
-EXIT_WARNINGS = 1
-EXIT_IMPORT_ERROR = 2
-EXIT_UNSUPPORTED_FORMAT = 3
-EXIT_EXPORT_ERROR = 4
+
 
 
 def main() -> int:

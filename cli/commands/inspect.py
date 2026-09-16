@@ -12,7 +12,7 @@ from SAVE.modules.import_stig import (
     import_file,
 )
 
-def command_import_file(args: argparse.Namespace) -> exit_status: 
+def command_inspect_file(args: argparse.Namespace) -> exit_status: 
     try:
         options = build_import_options(args)
         result = import_file(
@@ -29,3 +29,13 @@ def command_import_file(args: argparse.Namespace) -> exit_status:
         return EXIT_IMPORT_ERROR
 
     checklist = result.checklist
+
+    print_summary(
+            checklist=checklist,
+            detected_format=result.detected_format,
+            detection_confidence=result.detection.confidence,
+            detection_evidence=result.detection.evidence,
+            warnings=result.warnings,
+        )
+
+    return EXIT_WARNINGS if result.warnings else EXIT_SUCCESS
