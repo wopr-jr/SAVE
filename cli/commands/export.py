@@ -11,7 +11,7 @@ from SAVE.modules.export_stig import (
     export_file,
 )
 
-def command_file_export(args: argparse.Namespace):
+def command_export_file(args: argparse.Namespace):
     try:
         export_checklist(
             checklist=checklist,
