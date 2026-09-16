@@ -79,3 +79,10 @@ class ExportFormat(str, Enum):
     CKLB = "cklb"
     CSV = "csv"
     NORMALIZED_JSON = "normalized-json"
+
+class ExportExtension(str, Enum):
+
+    CKLB = ".cklb"
+    CSV = ".csv"
+    NORMALIZED_JSON = ".json"
+        

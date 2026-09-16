@@ -12,6 +12,7 @@ from SAVE.exporters.cklb import export_cklb, _cklb_export_handler
 from SAVE.exporters.csv import export_csv, _csv_export_handler
 from SAVE.exporters.normalized_json import export_normalized_json, _normalized_json_export_handler
 
+from SAVE.common.export_common import ExportFormat, ExportExtention
 
 class ExportErrorBase(Exception):
     """Base exception for SAVE export failures."""
@@ -262,16 +263,11 @@ class ExportService:
         destination: Path,
         export_format: ExportFormat,
     ) -> list[str]:
-        expected_extensions = {
-            ExportFormat.CKLB: {".cklb"},
-            ExportFormat.CSV: {".csv"},
-            ExportFormat.NORMALIZED_JSON: {".json"},
-        }
-
-        expected = expected_extensions[export_format]
+        
+        expected = ExportExtension(export_format)
         suffix = destination.suffix.lower()
 
-        if suffix and suffix not in expected:
+        if suffix is not in expected
             return [
                 f"Destination extension {suffix!r} does not normally match "
                 f"requested format {export_format.value!r}. Expected one of: "
