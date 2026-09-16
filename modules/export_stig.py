@@ -8,26 +8,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 
-from SAVE.exporters.cklb import export_cklb
+from SAVE.exporters.cklb import export_cklb, _cklb_export_handler
 from SAVE.exporters.csv import export_csv
 from SAVE.exporters.normalized_json import export_normalized_json
-
-
-class ExportFormat(str, Enum):
-    """
-    Supported SAVE output formats.
-
-    Add future formats here as their exporters are implemented:
-      - CKL
-      - XLSX
-      - HTML
-      - PDF report
-      - ARF
-    """
-
-    CKLB = "cklb"
-    CSV = "csv"
-    NORMALIZED_JSON = "normalized-json"
 
 
 class ExportErrorBase(Exception):
@@ -101,8 +84,6 @@ class ExportService:
 
     def __init__(self) -> None:
         self._handlers: dict[ExportFormat, ExporterHandler] = {
-            ExportFormat.CKLB: self._export_cklb,
-            ExportFormat.CSV: self._export_csv,
             ExportFormat.NORMALIZED_JSON: self._export_normalized_json,
         }
 
@@ -186,32 +167,6 @@ class ExportService:
         """
         self._handlers[export_format] = handler
 
-    def _export_cklb(
-        self,
-        checklist: Any,
-        destination: Path,
-        options: ExportOptions,
-    ) -> list[str]:
-        export_cklb(
-            checklist,
-            destination,
-            cklb_version=options.cklb_version,
-        )
-
-        return []
-
-    def _export_csv(
-        self,
-        checklist: Any,
-        destination: Path,
-        options: ExportOptions,
-    ) -> list[str]:
-        export_csv(
-            checklist,
-            destination,
-        )
-
-        return []
 
     def _export_normalized_json(
         self,
@@ -338,10 +293,10 @@ class ExportService:
 
         return []
 
-populated_export_service = ExportService.
-
 default_export_service = ExportService()
 
+default_export_service.register_exporter(ExportFormat.CKLB, _cklb_export_handler)
+default_export_service.register_exporter(ExportFormat.CSV, _csv_export_handler)
 
 def export_file(
     checklist: Any,

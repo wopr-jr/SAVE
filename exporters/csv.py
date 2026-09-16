@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
+from typing import Any
 
 from SAVE.model.Checklist import Checklist
-
+from SAVE.common.export_common import ExportOptions
 
 CSV_COLUMNS = [
     "checklist_uuid",
@@ -133,3 +134,16 @@ def export_csv(
                         ),
                     }
                 )
+
+def _csv_export_handler(
+        checklist: Any,
+        destination: Path,
+        options: ExportOptions,
+    ) -> list[str]:
+    
+    export_csv(
+        checklist,
+        destination,
+    )
+
+    return []

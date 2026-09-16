@@ -63,3 +63,19 @@ def to_primitive(value: Any, *, omit_none: bool = False) -> Any:
         return result
 
     return value
+
+class ExportFormat(str, Enum):
+    """
+    Supported SAVE output formats.
+
+    Add future formats here as their exporters are implemented:
+      - CKL
+      - XLSX
+      - HTML
+      - PDF report
+      - ARF
+    """
+
+    CKLB = "cklb"
+    CSV = "csv"
+    NORMALIZED_JSON = "normalized-json"
