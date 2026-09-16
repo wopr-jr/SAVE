@@ -38,3 +38,16 @@ def export_normalized_json(
             ensure_ascii=False,
         )
         output_file.write("\n")
+
+def _normalized_json_export_handler(
+        self,
+        checklist: Any,
+        destination: Path,
+        options: ExportOptions,
+    ) -> list[str]:
+        export_normalized_json(
+            checklist,
+            destination,
+        )
+
+        return []

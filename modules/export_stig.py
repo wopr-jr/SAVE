@@ -9,8 +9,8 @@ from typing import Any, Callable
 
 
 from SAVE.exporters.cklb import export_cklb, _cklb_export_handler
-from SAVE.exporters.csv import export_csv
-from SAVE.exporters.normalized_json import export_normalized_json
+from SAVE.exporters.csv import export_csv, _csv_export_handler
+from SAVE.exporters.normalized_json import export_normalized_json, _normalized_json_export_handler
 
 
 class ExportErrorBase(Exception):
@@ -84,7 +84,6 @@ class ExportService:
 
     def __init__(self) -> None:
         self._handlers: dict[ExportFormat, ExporterHandler] = {
-            ExportFormat.NORMALIZED_JSON: self._export_normalized_json,
         }
 
     def export_file(
@@ -167,19 +166,7 @@ class ExportService:
         """
         self._handlers[export_format] = handler
 
-
-    def _export_normalized_json(
-        self,
-        checklist: Any,
-        destination: Path,
-        options: ExportOptions,
-    ) -> list[str]:
-        export_normalized_json(
-            checklist,
-            destination,
-        )
-
-        return []
+    
 
     def _export_atomically(
         self,
@@ -297,6 +284,7 @@ default_export_service = ExportService()
 
 default_export_service.register_exporter(ExportFormat.CKLB, _cklb_export_handler)
 default_export_service.register_exporter(ExportFormat.CSV, _csv_export_handler)
+default_export_service.register_exporter(ExportFormat.NORMALIZED_JSON, _normalized_json_export_handler)
 
 def export_file(
     checklist: Any,
