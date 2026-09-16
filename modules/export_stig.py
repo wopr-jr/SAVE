@@ -338,6 +338,7 @@ class ExportService:
 
         return []
 
+populated_export_service = ExportService.
 
 default_export_service = ExportService()
 

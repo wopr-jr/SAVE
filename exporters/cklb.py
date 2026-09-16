@@ -197,3 +197,16 @@ def _omit_none(value):
         ]
 
     return value
+
+def _cklb_export_handler(
+        checklist: Any,
+        destination: Path,
+        options: ExportOptions,
+    ) -> list[str]:
+        export_cklb(
+            checklist,
+            destination,
+            cklb_version=options.cklb_version,
+        )
+
+        return []
