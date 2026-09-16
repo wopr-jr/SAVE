@@ -1,3 +1,17 @@
+from __future__ import annotations
+
+import argparse
+
+from SAVE.cli.parsers.export_options import build_export_options
+from SAVE.modules.export_stig import (
+    ExportErrorBase,
+    DestinationExistsError,
+    ExportFormat,
+    UnsupportedExportFormatError,
+    export_file,
+)
+
+def command_file_export(args: argparse.Namespace):
     try:
         export_checklist(
             checklist=checklist,

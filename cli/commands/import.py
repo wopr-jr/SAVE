@@ -12,7 +12,7 @@ from SAVE.modules.import_stig import (
     import_file,
 )
 
-def command_import_file(args: argparse.Namespace): 
+def command_import_file(args: argparse.Namespace) -> result.checklist: 
     try:
         options = build_import_options(args)
         result = import_file(
