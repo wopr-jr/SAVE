@@ -21,7 +21,7 @@ from SAVE.modules.export_stig import (
     export_file,
 )
 
-from SAVE.cli.parsers.import_options import build_import_options
+
 from SAVE.cli.parsers.export_options import build_export_options
 
 
@@ -36,25 +36,26 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
-    options = build_options(args)
-    try:
-        options = build_import_options(args)
-        result = import_file(
-            args.source,
-            options=options,
-        )
+    
 
-    except UnsupportedFormatError as exc:
-        print(f"Unsupported format: {exc}", file=sys.stderr)
-        return EXIT_UNSUPPORTED_FORMAT
-
-    except (FormatDetectionError, ImportErrorBase, OSError, ValueError) as exc:
-        print(f"Import failed: {exc}", file=sys.stderr)
-        return EXIT_IMPORT_ERROR
-
-    checklist = result.checklist
+    
     if args.command == "import":
-        try 
+         try:
+            options = build_import_options(args)
+            result = import_file(
+                args.source,
+                options=options,
+            )
+
+        except UnsupportedFormatError as exc:
+            print(f"Unsupported format: {exc}", file=sys.stderr)
+            return EXIT_UNSUPPORTED_FORMAT
+
+        except (FormatDetectionError, ImportErrorBase, OSError, ValueError) as exc:
+            print(f"Import failed: {exc}", file=sys.stderr)
+            return EXIT_IMPORT_ERROR
+
+        checklist = result.checklist
 
     if args.command == "inspect":
         print_summary(
