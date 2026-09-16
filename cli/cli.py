@@ -14,8 +14,6 @@ from SAVE.modules.import_stig import (
 )
 
 
-
-
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
