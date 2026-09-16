@@ -16,30 +16,18 @@ from SAVE.modules.import_stig import (
 
 
 
-
-
-
-
-
-
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
   
     if args.command == "import":
-        command_import_file
+        return command_import_file(args=args)
+        
 
     if args.command == "inspect":
-        print_summary(
-            checklist=checklist,
-            detected_format=result.detected_format,
-            detection_confidence=result.detection.confidence,
-            detection_evidence=result.detection.evidence,
-            warnings=result.warnings,
-        )
-
-        return EXIT_WARNINGS if result.warnings else EXIT_SUCCESS
-
+        return command_inspect_checklist(args=args)
+        
+    
     try:
         export_checklist(
             checklist=checklist,
