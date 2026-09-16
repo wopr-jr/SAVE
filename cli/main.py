@@ -21,6 +21,10 @@ from SAVE.modules.export_stig import (
     export_file,
 )
 
+from SAVE.cli.parsers.import_options import build_import_options
+from SAVE.cli.parsers.export_options import build_export_options
+
+
 EXIT_SUCCESS = 0
 EXIT_WARNINGS = 1
 EXIT_IMPORT_ERROR = 2
@@ -32,6 +36,7 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
+    options = build_options(args)
     try:
         options = build_import_options(args)
         result = import_file(
@@ -48,6 +53,8 @@ def main() -> int:
         return EXIT_IMPORT_ERROR
 
     checklist = result.checklist
+    if args.command == "import":
+        try 
 
     if args.command == "inspect":
         print_summary(
