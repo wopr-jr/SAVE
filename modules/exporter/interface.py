@@ -212,39 +212,39 @@ class ExportService:
     def _resolve_format(
         export_format: ExportAvailableFormat | str,
     ) -> ExportAvailableFormat:
-    """
-    Resolve only canonical SAVE export-format names.
+        """
+        Resolve only canonical SAVE export-format names.
 
-    Accepted examples:
-        ExportAvailableFormat.CKLB
-        "cklb"
-        "csv"
-        "normalized-json"
-    """
-    if isinstance(export_format, ExportAvailableFormat):
-        return export_format
+        Accepted examples:
+            ExportAvailableFormat.CKLB
+            "cklb"
+            "csv"
+            "normalized-json"
+        """
+        if isinstance(export_format, ExportAvailableFormat):
+            return export_format
 
-    if not isinstance(export_format, str):
-        raise UnsupportedExportFormatError(
-            f"Unsupported output format type: "
-            f"{type(export_format).__name__}."
+        if not isinstance(export_format, str):
+            raise UnsupportedExportFormatError(
+                f"Unsupported output format type: "
+                f"{type(export_format).__name__}."
+            )
+
+        requested = export_format.strip().lower()
+
+        for format_type in ExportAvailableFormat:
+            if requested == format_type.value.lower():
+                return format_type
+
+        supported = ", ".join(
+            format_type.value
+            for format_type in ExportAvailableFormat
         )
 
-    requested = export_format.strip().lower()
-
-    for format_type in ExportAvailableFormat:
-        if requested == format_type.value.lower():
-            return format_type
-
-    supported = ", ".join(
-        format_type.value
-        for format_type in ExportAvailableFormat
-    )
-
-    raise UnsupportedExportFormatError(
-        f"Unsupported output format {export_format!r}. "
-        f"Supported formats: {supported}."
-    )
+        raise UnsupportedExportFormatError(
+            f"Unsupported output format {export_format!r}. "
+            f"Supported formats: {supported}."
+        )
 
     @staticmethod
     def _validate_destination(
