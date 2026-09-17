@@ -208,10 +208,10 @@ class ExportService:
 
             raise
 
-@staticmethod
-def _resolve_format(
-    export_format: ExportAvailableFormat | str,
-) -> ExportAvailableFormat:
+    @staticmethod
+    def _resolve_format(
+        export_format: ExportAvailableFormat | str,
+    ) -> ExportAvailableFormat:
     """
     Resolve only canonical SAVE export-format names.
 
@@ -312,7 +312,7 @@ def create_default_export_service() -> ExportService:
     from SAVE.modules.exporter.components.xlsx import (
         _xlsx_export_handler,
     )
-    
+
     service = ExportService()
 
     service.register_exporter(
