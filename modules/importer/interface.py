@@ -14,7 +14,7 @@ from SAVE.model.Checklist import Checklist
 
 
 if TYPE_CHECKING:
-    from SAVE.modules.importer.components.csv_importer import (
+    from SAVE.modules.importer.components.csv import (
         CsvColumnMap,
     )
 
@@ -485,7 +485,7 @@ def create_default_import_service() -> ImportService:
     from SAVE.modules.importer.components.cklb import (
         import_cklb,
     )
-    from SAVE.modules.importer.components.csv_importer import (
+    from SAVE.modules.importer.components.csv import (
         import_csv,
     )
     from SAVE.modules.importer.components.xccdf import (
