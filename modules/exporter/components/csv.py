@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from SAVE.model.Checklist import Checklist
-from SAVE.modules.exporter.interface import ExportOptions
+
+if TYPE_CHECKING:
+    from SAVE.modules.exporter.interface import ExportOptions
 
 CSV_COLUMNS = [
     "checklist_uuid",

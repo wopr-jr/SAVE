@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from SAVE.model.Checklist import Checklist
-from SAVE.modules.exporter.interface import ExportOptions
+
+if TYPE_CHECKING:
+    from SAVE.modules.exporter.interface import ExportOptions
 
 def export_cklb(
     checklist: Checklist,

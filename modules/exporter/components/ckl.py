@@ -4,12 +4,12 @@ import re
 from datetime import date, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from uuid import UUID
 from xml.etree import ElementTree as ET
 
-# Adjust this import if your unified exporter interface uses a different path.
-from SAVE.modules.exporter.interface import ExportOptions
+if TYPE_CHECKING:
+    from SAVE.modules.exporter.interface import ExportOptions
 
 
 XML_INVALID_CHARACTERS = re.compile(

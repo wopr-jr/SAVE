@@ -4,12 +4,11 @@ from collections import Counter
 from datetime import date, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
 from uuid import UUID
+from typing import Any, TYPE_CHECKING
 
-
-# Adjust this import if your interface file uses a different path.
-from SAVE.modules.exporter.interface import ExportOptions
+if TYPE_CHECKING:
+    from SAVE.modules.exporter.interface import ExportOptions
 
 
 EXCEL_MAX_CELL_LENGTH = 32_767
