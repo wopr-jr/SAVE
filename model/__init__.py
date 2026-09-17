@@ -1,7 +1,7 @@
-from SAVE.model.asset import Asset
-from SAVE.model.checklist import Checklist
-from SAVE.model.stig import Stig
-from SAVE.model.stig_rule import StigRule
+from SAVE.model.Asset import Asset
+from SAVE.model.Checklist import Checklist
+from SAVE.model.Stig import Stig
+from SAVE.model.StigRule import StigRule
 
 __all__ = [
     "Asset",
