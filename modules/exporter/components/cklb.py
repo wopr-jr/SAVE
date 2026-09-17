@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from SAVE.model.Checklist import Checklist
-from SAVE.common.export_common import ExportOptions
+from SAVE.modules.exporter.common.export_common import ExportOptions
 
 def export_cklb(
     checklist: Checklist,
