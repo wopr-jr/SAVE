@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -259,10 +260,34 @@ def _parse_rule(
     rule_index: int,
 ) -> tuple[StigRule, list[str]]:
     warnings: list[str] = []
+    
+    group_id_source = _first_string(
+    data,
+    "group_id_src",
+    "group_id",
+    )
 
-    vuln_id = _first_string(data, "vuln_id", "vuln_num")
-    rule_id_source = _first_string(data, "rule_id_src", "rule_id")
-    group_id_source = _first_string(data, "group_id_src", "group_id")
+    vuln_id = _first_string(
+        data,
+        "vuln_id",
+        "vuln_num",
+        "vuln_number",
+        "vulnerability_id",
+    )
+
+    # CKLB files commonly represent the legacy V-#### identifier as group_id.
+    if (
+        vuln_id is None
+        and group_id_source is not None
+        and re.fullmatch(r"V-\d+", group_id_source)
+    ):
+        vuln_id = group_id_source
+
+    rule_id_source = _first_string(
+        data,
+        "rule_id_src",
+        "rule_id",
+    )
 
     rule_identity = vuln_id or rule_id_source or f"index-{rule_index}"
 
