@@ -279,25 +279,25 @@ def _resolve_format(
         )
 
     @staticmethod
-def _extension_warnings(
-    destination: Path,
-    export_format: ExportAvailableFormat,
-) -> list[str]:
-    expected = {
-        extension.lower()
-        for extension in export_format.extensions
-    }
+    def _extension_warnings(
+        destination: Path,
+        export_format: ExportAvailableFormat,
+    ) -> list[str]:
+        expected = {
+            extension.lower()
+            for extension in export_format.extensions
+        }
 
-    suffix = destination.suffix.lower()
+        suffix = destination.suffix.lower()
 
-    if suffix not in expected:
-        return [
-            f"Destination extension {suffix!r} does not normally match "
-            f"requested format {export_format.value!r}. Expected one of: "
-            f"{', '.join(sorted(expected))}."
-        ]
+        if suffix not in expected:
+            return [
+                f"Destination extension {suffix!r} does not normally match "
+                f"requested format {export_format.value!r}. Expected one of: "
+                f"{', '.join(sorted(expected))}."
+            ]
 
-    return []
+        return []
 
 def create_default_export_service() -> ExportService:
     """
