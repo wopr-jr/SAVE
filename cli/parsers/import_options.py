@@ -1,3 +1,5 @@
+import argparse
+
 def add_common_import_arguments(
     parser: argparse.ArgumentParser,
 ) -> None:
