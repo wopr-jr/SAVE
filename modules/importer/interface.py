@@ -4,17 +4,19 @@ import json
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Callable
+from typing import TYPE_CHECKING, Any, Callable
 from uuid import UUID
 
 from defusedxml import ElementTree as ET
 
 from SAVE.model.Asset import Asset
-from SAVE.model.Checklist import Checklist, ChecklistFormat
-from SAVE.modules.importer.components.ckl import import_ckl
-from SAVE.modules.importer.components.cklb import import_cklb
-from SAVE.modules.importer.components.csv_importer import CsvColumnMap, import_csv
-from SAVE.modules.importer.components.xccdf import import_xccdf
+from SAVE.model.Checklist import Checklist
+
+
+if TYPE_CHECKING:
+    from SAVE.modules.importer.components.csv_importer import (
+        CsvColumnMap,
+    )
 
 
 class ImportFormat(str, Enum):
@@ -89,33 +91,50 @@ class UnifiedImportResult:
     warnings: list[str] = field(default_factory=list)
 
 
-ImporterHandler = Callable[[Path, ImportOptions], UnifiedImportResult]
+ImporterHandler = Callable[
+    [
+        Path,
+        ImportOptions,
+        DetectionResult,
+    ],
+    UnifiedImportResult,
+]
+
+
+ComponentImporter = Callable[
+    [
+        Path,
+        ImportOptions,
+    ],
+    Any,
+]
 
 
 class ImportService:
     """
-    SAVE's unified file-ingestion service.
+    Unified SAVE file-ingestion service.
 
     Responsibilities:
       - Validate local file inputs.
       - Detect source format by content.
-      - Dispatch to the proper format-specific importer.
-      - Return one common normalized result type.
+      - Dispatch to a registered importer adapter.
+      - Return a consistent UnifiedImportResult.
 
     Non-responsibilities:
       - SQLite persistence.
       - Export.
       - CLI argument parsing.
       - Server/API transport behavior.
+
+    A newly instantiated ImportService has no registered importers.
+    Use create_default_import_service() for the standard SAVE configuration.
     """
 
     def __init__(self) -> None:
-        self._handlers: dict[ImportFormat, ImporterHandler] = {
-            ImportFormat.CKL: self._import_ckl,
-            ImportFormat.CKLB: self._import_cklb,
-            ImportFormat.CSV: self._import_csv,
-            ImportFormat.XCCDF: self._import_xccdf,
-        }
+        self._handlers: dict[
+            ImportFormat,
+            ImporterHandler,
+        ] = {}
 
     def import_file(
         self,
@@ -129,14 +148,19 @@ class ImportService:
         source_path = Path(source)
         options = options or ImportOptions()
 
-        self._validate_source(source_path, options)
+        self._validate_source(
+            source_path,
+            options,
+        )
 
         detection = self.detect_format(
             source_path,
             format_hint=options.format_hint,
         )
 
-        handler = self._handlers.get(detection.format)
+        handler = self._handlers.get(
+            detection.format,
+        )
 
         if handler is None:
             raise UnsupportedFormatError(
@@ -144,17 +168,44 @@ class ImportService:
                 f"{detection.format.value!r}."
             )
 
-        result = handler(source_path, options)
+        result = handler(
+            source_path,
+            options,
+            detection,
+        )
 
-        # Defend against an importer returning inconsistent metadata.
-        if result.checklist.checklist_format.value != detection.format.value:
+        normalized_format = result.checklist.checklist_format.value
+
+        if normalized_format != detection.format.value:
             result.warnings.append(
                 "Importer output format does not match detected format: "
                 f"detected={detection.format.value!r}, "
-                f"normalized={result.checklist.checklist_format.value!r}."
+                f"normalized={normalized_format!r}."
             )
 
         return result
+
+    def register_importer(
+        self,
+        source_format: ImportFormat,
+        handler: ImporterHandler,
+    ) -> None:
+        """
+        Register an importer without modifying ImportService internals.
+
+        Future importer registrations may include:
+          - ARF
+          - OVAL
+          - Nessus
+          - ZIP package dispatcher
+          - XLSX assessment tracker
+        """
+        if source_format == ImportFormat.AUTO:
+            raise ValueError(
+                "Cannot register an importer for AUTO format."
+            )
+
+        self._handlers[source_format] = handler
 
     def detect_format(
         self,
@@ -163,10 +214,7 @@ class ImportService:
         format_hint: ImportFormat = ImportFormat.AUTO,
     ) -> DetectionResult:
         """
-        Detect a format by content when possible.
-
-        A caller-supplied format hint is honored, but obvious malformed input
-        is still rejected by the eventual format-specific importer.
+        Detect a source format by content when possible.
         """
         source_path = Path(source)
 
@@ -181,8 +229,8 @@ class ImportService:
 
         if prefix.startswith(b"PK\x03\x04"):
             raise UnsupportedFormatError(
-                "ZIP archive detected. A SAVE package/ZIP dispatcher has not "
-                "been registered yet."
+                "ZIP archive detected. A SAVE package/ZIP dispatcher has "
+                "not been registered yet."
             )
 
         stripped = prefix.lstrip()
@@ -193,7 +241,10 @@ class ImportService:
         if stripped.startswith(b"<"):
             return self._detect_xml(source_path)
 
-        if self._looks_like_csv(source_path, prefix):
+        if self._looks_like_csv(
+            source_path,
+            prefix,
+        ):
             return DetectionResult(
                 format=ImportFormat.CSV,
                 confidence="medium",
@@ -202,11 +253,11 @@ class ImportService:
 
         suffix = source_path.suffix.lower()
 
-        # Filename extension is only a fallback, never the primary signal.
         suffix_map = {
             ".ckl": ImportFormat.CKL,
             ".cklb": ImportFormat.CKLB,
             ".csv": ImportFormat.CSV,
+            ".tsv": ImportFormat.CSV,
             ".xccdf": ImportFormat.XCCDF,
         }
 
@@ -214,127 +265,16 @@ class ImportService:
             return DetectionResult(
                 format=suffix_map[suffix],
                 confidence="low",
-                evidence=f"Fallback based on filename extension {suffix!r}.",
+                evidence=(
+                    "Fallback based on filename extension "
+                    f"{suffix!r}."
+                ),
             )
 
         raise UnsupportedFormatError(
-            f"Could not identify a supported format for {source_path.name!r}. "
-            "Specify a format hint or provide CKL, CKLB, CSV, or XCCDF input."
-        )
-
-    def register_importer(
-        self,
-        source_format: ImportFormat,
-        handler: ImporterHandler,
-    ) -> None:
-        """
-        Register a new importer without modifying ImportService internals.
-
-        Example future registrations:
-          - ARF
-          - OVAL
-          - Nessus
-          - ZIP package dispatcher
-        """
-        if source_format == ImportFormat.AUTO:
-            raise ValueError("Cannot register an importer for AUTO format.")
-
-        self._handlers[source_format] = handler
-
-    def _import_ckl(
-        self,
-        source: Path,
-        options: ImportOptions,
-    ) -> UnifiedImportResult:
-        imported = import_ckl(
-            source,
-            checklist_uuid=options.checklist_uuid,
-        )
-
-        return UnifiedImportResult(
-            checklist=imported.checklist,
-            detected_format=ImportFormat.CKL,
-            detection=DetectionResult(
-                format=ImportFormat.CKL,
-                confidence="high",
-                evidence="CKL importer selected.",
-            ),
-            source_path=source,
-            warnings=list(imported.warnings),
-        )
-
-    def _import_cklb(
-        self,
-        source: Path,
-        options: ImportOptions,
-    ) -> UnifiedImportResult:
-        imported = import_cklb(
-            source,
-            checklist_uuid=options.checklist_uuid,
-        )
-
-        return UnifiedImportResult(
-            checklist=imported.checklist,
-            detected_format=ImportFormat.CKLB,
-            detection=DetectionResult(
-                format=ImportFormat.CKLB,
-                confidence="high",
-                evidence="CKLB importer selected.",
-            ),
-            source_path=source,
-            warnings=list(imported.warnings),
-        )
-
-    def _import_csv(
-        self,
-        source: Path,
-        options: ImportOptions,
-    ) -> UnifiedImportResult:
-        imported = import_csv(
-            source,
-            checklist_uuid=options.checklist_uuid,
-            delimiter=options.csv_delimiter,
-            encoding=options.csv_encoding,
-            column_map=options.csv_column_map,
-            default_stig_id=options.default_stig_id,
-            default_stig_name=options.default_stig_name,
-            default_asset=options.default_asset,
-        )
-
-        return UnifiedImportResult(
-            checklist=imported.checklist,
-            detected_format=ImportFormat.CSV,
-            detection=DetectionResult(
-                format=ImportFormat.CSV,
-                confidence="high",
-                evidence="CSV importer selected.",
-            ),
-            source_path=source,
-            warnings=list(imported.warnings),
-        )
-
-    def _import_xccdf(
-        self,
-        source: Path,
-        options: ImportOptions,
-    ) -> UnifiedImportResult:
-        imported = import_xccdf(
-            source,
-            checklist_uuid=options.checklist_uuid,
-            include_test_results=options.include_xccdf_test_results,
-            test_result_id=options.xccdf_test_result_id,
-        )
-
-        return UnifiedImportResult(
-            checklist=imported.checklist,
-            detected_format=ImportFormat.XCCDF,
-            detection=DetectionResult(
-                format=ImportFormat.XCCDF,
-                confidence="high",
-                evidence="XCCDF importer selected.",
-            ),
-            source_path=source,
-            warnings=list(imported.warnings),
+            f"Could not identify a supported format for "
+            f"{source_path.name!r}. Specify a format hint or provide "
+            "CKL, CKLB, CSV, or XCCDF input."
         )
 
     def _detect_json(
@@ -342,15 +282,21 @@ class ImportService:
         source: Path,
     ) -> DetectionResult:
         try:
-            with source.open("r", encoding="utf-8-sig") as source_file:
+            with source.open(
+                "r",
+                encoding="utf-8-sig",
+            ) as source_file:
                 document = json.load(source_file)
+
         except UnicodeDecodeError as exc:
             raise FormatDetectionError(
                 f"{source.name} appears to be JSON but is not UTF-8 text."
             ) from exc
+
         except json.JSONDecodeError as exc:
             raise FormatDetectionError(
-                f"{source.name} appears to be JSON but cannot be parsed: {exc}"
+                f"{source.name} appears to be JSON but cannot be parsed: "
+                f"{exc}"
             ) from exc
 
         if not isinstance(document, dict):
@@ -376,12 +322,17 @@ class ImportService:
     ) -> DetectionResult:
         try:
             root = ET.parse(source).getroot()
+
         except ET.ParseError as exc:
             raise FormatDetectionError(
-                f"{source.name} appears to be XML but cannot be parsed: {exc}"
+                f"{source.name} appears to be XML but cannot be parsed: "
+                f"{exc}"
             ) from exc
 
-        root_name = root.tag.rsplit("}", 1)[-1].lower()
+        root_name = root.tag.rsplit(
+            "}",
+            1,
+        )[-1].lower()
 
         if root_name == "checklist":
             return DetectionResult(
@@ -407,10 +358,14 @@ class ImportService:
         options: ImportOptions,
     ) -> None:
         if not source.exists():
-            raise FileNotFoundError(f"Source file does not exist: {source}")
+            raise FileNotFoundError(
+                f"Source file does not exist: {source}"
+            )
 
         if not source.is_file():
-            raise ValueError(f"Source path is not a regular file: {source}")
+            raise ValueError(
+                f"Source path is not a regular file: {source}"
+            )
 
         if options.max_file_bytes is None:
             return
@@ -440,8 +395,8 @@ class ImportService:
         """
         Conservative CSV detection.
 
-        CSV is inherently ambiguous, so use an extension or explicit hint
-        when practical. This check only recognizes common delimited headers.
+        CSV is inherently ambiguous, so an explicit format hint remains
+        preferable when possible.
         """
         suffix = source.suffix.lower()
 
@@ -453,12 +408,22 @@ class ImportService:
         except UnicodeDecodeError:
             return False
 
-        first_line = text.splitlines()[0] if text.splitlines() else ""
+        lines = text.splitlines()
+
+        if not lines:
+            return False
+
+        first_line = lines[0]
 
         if not first_line:
             return False
 
-        delimiters = (",", "\t", ";", "|")
+        delimiters = (
+            ",",
+            "\t",
+            ";",
+            "|",
+        )
 
         return any(
             delimiter in first_line
@@ -466,7 +431,151 @@ class ImportService:
         )
 
 
-default_import_service = ImportService()
+def _create_component_handler(
+    *,
+    source_format: ImportFormat,
+    component_importer: ComponentImporter,
+) -> ImporterHandler:
+    """
+    Wrap a format-specific component importer in SAVE's common result type.
+
+    Component importers return their own result objects containing at least:
+        imported.checklist
+        imported.warnings
+    """
+
+    def handler(
+        source: Path,
+        options: ImportOptions,
+        detection: DetectionResult,
+    ) -> UnifiedImportResult:
+        imported = component_importer(
+            source,
+            options,
+        )
+
+        return UnifiedImportResult(
+            checklist=imported.checklist,
+            detected_format=source_format,
+            detection=detection,
+            source_path=source,
+            warnings=list(
+                getattr(
+                    imported,
+                    "warnings",
+                    [],
+                )
+            ),
+        )
+
+    return handler
+
+
+def create_default_import_service() -> ImportService:
+    """
+    Create ImportService configured with standard SAVE import components.
+
+    Component imports occur inside this factory rather than at module load
+    time. This mirrors the exporter factory pattern and prevents circular
+    imports between the common interface and format-specific components.
+    """
+    from SAVE.modules.importer.components.ckl import (
+        import_ckl,
+    )
+    from SAVE.modules.importer.components.cklb import (
+        import_cklb,
+    )
+    from SAVE.modules.importer.components.csv_importer import (
+        import_csv,
+    )
+    from SAVE.modules.importer.components.xccdf import (
+        import_xccdf,
+    )
+
+    service = ImportService()
+
+    def import_ckl_adapter(
+        source: Path,
+        options: ImportOptions,
+    ) -> Any:
+        return import_ckl(
+            source,
+            checklist_uuid=options.checklist_uuid,
+        )
+
+    def import_cklb_adapter(
+        source: Path,
+        options: ImportOptions,
+    ) -> Any:
+        return import_cklb(
+            source,
+            checklist_uuid=options.checklist_uuid,
+        )
+
+    def import_csv_adapter(
+        source: Path,
+        options: ImportOptions,
+    ) -> Any:
+        return import_csv(
+            source,
+            checklist_uuid=options.checklist_uuid,
+            delimiter=options.csv_delimiter,
+            encoding=options.csv_encoding,
+            column_map=options.csv_column_map,
+            default_stig_id=options.default_stig_id,
+            default_stig_name=options.default_stig_name,
+            default_asset=options.default_asset,
+        )
+
+    def import_xccdf_adapter(
+        source: Path,
+        options: ImportOptions,
+    ) -> Any:
+        return import_xccdf(
+            source,
+            checklist_uuid=options.checklist_uuid,
+            include_test_results=(
+                options.include_xccdf_test_results
+            ),
+            test_result_id=options.xccdf_test_result_id,
+        )
+
+    service.register_importer(
+        ImportFormat.CKL,
+        _create_component_handler(
+            source_format=ImportFormat.CKL,
+            component_importer=import_ckl_adapter,
+        ),
+    )
+
+    service.register_importer(
+        ImportFormat.CKLB,
+        _create_component_handler(
+            source_format=ImportFormat.CKLB,
+            component_importer=import_cklb_adapter,
+        ),
+    )
+
+    service.register_importer(
+        ImportFormat.CSV,
+        _create_component_handler(
+            source_format=ImportFormat.CSV,
+            component_importer=import_csv_adapter,
+        ),
+    )
+
+    service.register_importer(
+        ImportFormat.XCCDF,
+        _create_component_handler(
+            source_format=ImportFormat.XCCDF,
+            component_importer=import_xccdf_adapter,
+        ),
+    )
+
+    return service
+
+
+default_import_service = create_default_import_service()
 
 
 def import_file(
@@ -475,7 +584,7 @@ def import_file(
     options: ImportOptions | None = None,
 ) -> UnifiedImportResult:
     """
-    Convenience function for CLI and simple callers.
+    Convenience entry point for CLI, scripts, and future API use.
     """
     return default_import_service.import_file(
         source,
