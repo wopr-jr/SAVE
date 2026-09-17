@@ -7,7 +7,7 @@ from typing import Protocol
 
 from SAVE.cli.commands.convert_file import command_convert_file
 from SAVE.cli.commands.import_file import command_import_file
-from SAVE.cli.commands.inspect import command_inspect_stored_checklist
+from SAVE.cli.commands.inspect import command_inspect_checklist
 
 from SAVE.cli.cli_common import ExitCode
 from SAVE.cli.parsers.main_parser import build_parser
@@ -25,7 +25,7 @@ def main() -> int:
             return command_import_file(args=args)
 
         case "inspect":
-            return command_inspect_stored_checklist(args=args)
+            return command_inspect_checklist(args=args)
 
         case _:
             parser.error(
