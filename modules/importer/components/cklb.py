@@ -358,7 +358,11 @@ def _parse_rule(
             target_key=_optional_string(data.get("target_key")),
             check_content_ref=check_content_ref,
 
-            ccis=_string_list(data.get("ccis")),
+            cci_refs=_string_list(
+                data.get("ccis")
+                or data.get("cci_refs")
+                or data.get("cci_ref")
+            ),
             legacy_ids=_string_list(data.get("legacy_ids")),
             group_tree=group_tree,
 
