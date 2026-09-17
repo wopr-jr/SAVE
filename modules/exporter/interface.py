@@ -12,6 +12,7 @@ from SAVE.modules.exporter.components.cklb import export_cklb, _cklb_export_hand
 from SAVE.modules.exporter.components.csv import export_csv, _csv_export_handler
 from SAVE.modules.exporter.components.normalized_json import export_normalized_json, _normalized_json_export_handler
 from SAVE.modules.exporter.components.ckl import _ckl_export_handler
+from SAVE.modules.exporter.components.xlsx import _xlsx_export_handler
 
 from SAVE.modules.exporter.common.export_common import ExportAvailableFormat, ExportExtention
 
@@ -322,6 +323,11 @@ def create_default_export_service() -> ExportService:
     service.register_exporter(
         ExportAvailableFormat.CKL,
         _ckl_export_handler,
+    )
+
+    service.register_exporter(
+        ExportAvailableFormat.XLSX,
+        _xlsx_export_handler,
     )
 
     return service

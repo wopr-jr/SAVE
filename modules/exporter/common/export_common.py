@@ -69,6 +69,7 @@ class ExportAvailableFormat(str, Enum):
     CKL = ("ckl", {".ckl"})
     CKLB = ("cklb", {".cklb"})
     CSV = ("csv", {".csv"})
+    XLSX = ("xlsx", {".xlsx"})
     NORMALIZED_JSON = ("normalized-json", {".json"})
 
     def __new__(
