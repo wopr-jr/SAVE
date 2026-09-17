@@ -13,7 +13,7 @@ from SAVE.cli.parsers.persistence_options import (
     build_persistence_options,
 )
 
-from SAVE.modules.import_stig import (
+from SAVE.modules.importer.interface import (
     ImportErrorBase,
     UnsupportedFormatError,
     import_file,
