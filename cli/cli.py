@@ -10,7 +10,7 @@ from SAVE.cli.commands.import_file import command_import_file
 from SAVE.cli.commands.inspect import command_inspect_checklist
 
 from SAVE.cli.cli_common import ExitCode
-from SAVE.cli.parsers.main_parser import build_parser
+from SAVE.cli.parsers.build_parsers import build_parser
 
 
 def main() -> int:
