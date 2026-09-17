@@ -1,41 +1,90 @@
 from __future__ import annotations
 
-import argparse
+from collections import Counter
+from dataclasses import dataclass
 
-from SAVE.cli.parsers.import_options import build_import_options
-from SAVE.modules.importer.interface import (
-    FormatDetectionError,
-    ImportErrorBase,
-    ImportFormat,
-    ImportOptions,
-    UnsupportedFormatError,
-    import_file,
+from SAVE.cli.cli_common import (
+    ExitCode,
+    print_summary,
 )
 
-def command_inspect_file(args: argparse.Namespace) -> exit_status: 
-    try:
-        options = build_import_options(args)
-        result = import_file(
-            args.source,
-            options=options,
-        )
 
-    except UnsupportedFormatError as exc:
-        print(f"Unsupported format: {exc}", file=sys.stderr)
-        return EXIT_UNSUPPORTED_FORMAT
+@dataclass(slots=True)
+class ChecklistInspection:
+    """
+    A presentation-oriented summary of one normalized checklist.
 
-    except (FormatDetectionError, ImportErrorBase, OSError, ValueError) as exc:
-        print(f"Import failed: {exc}", file=sys.stderr)
-        return EXIT_IMPORT_ERROR
+    This is intentionally independent of import results, source files,
+    database access, or CLI argument parsing.
+    """
 
-    checklist = result.checklist
+    checklist_uuid: str
+    stig_count: int
+    rule_count: int
+
+    open_count: int
+    not_a_finding_count: int
+    not_applicable_count: int
+    not_reviewed_count: int
+
+    critical_count: int
+    high_count: int
+    medium_count: int
+    low_count: int
+    unknown_severity_count: int
+
+
+def inspect_checklist(
+    checklist,
+) -> ChecklistInspection:
+    """
+    Inspect an already-loaded normalized Checklist.
+
+    No imports, exports, file access, database access, or mutation occur here.
+    """
+    status_counts: Counter[str] = Counter()
+    severity_counts: Counter[str] = Counter()
+    rule_count = 0
+
+    for stig in checklist.stigs:
+        for rule in stig.rules:
+            rule_count += 1
+
+            status_counts[rule.status.value] += 1
+            severity_counts[rule.severity.value] += 1
+
+    return ChecklistInspection(
+        checklist_uuid=str(checklist.checklist_uuid),
+        stig_count=len(checklist.stigs),
+        rule_count=rule_count,
+
+        open_count=status_counts["open"],
+        not_a_finding_count=status_counts["not_a_finding"],
+        not_applicable_count=status_counts["not_applicable"],
+        not_reviewed_count=status_counts["not_reviewed"],
+
+        critical_count=severity_counts["critical"],
+        high_count=severity_counts["high"],
+        medium_count=severity_counts["medium"],
+        low_count=severity_counts["low"],
+        unknown_severity_count=severity_counts["unknown"],
+    )
+
+
+def command_inspect_checklist(
+    *,
+    checklist,
+) -> ExitCode:
+    """
+    Render inspection output for an already-resolved Checklist.
+
+    The caller is responsible for obtaining `checklist`.
+    """
+    inspection = inspect_checklist(checklist)
 
     print_summary(
-            checklist=checklist,
-            detected_format=result.detected_format,
-            detection_confidence=result.detection.confidence,
-            detection_evidence=result.detection.evidence,
-            warnings=result.warnings,
-        )
+        checklist=checklist,
+        inspection=inspection,
+    )
 
-    return EXIT_WARNINGS if result.warnings else EXIT_SUCCESS
+    return ExitCode.SUCCESS

@@ -1,77 +1,76 @@
+from enum import IntEnum
 
 
-EXIT_SUCCESS = 0
-EXIT_WARNINGS = 1
-EXIT_IMPORT_ERROR = 2
-EXIT_UNSUPPORTED_FORMAT = 3
-EXIT_EXPORT_ERROR = 4
-EXIT_UNKNOWN_COMMAND = 5
+class ExitCode(IntEnum):
+    SUCCESS = 0
+    WARNINGS = 1
+
+    # argparse normally uses exit code 2 for command-line usage errors.
+    USAGE_ERROR = 2
+
+    UNSUPPORTED_FORMAT = 3
+    IMPORT_ERROR = 4
+    EXPORT_ERROR = 5
+    DATABASE_ERROR = 6
+    INTERNAL_ERROR = 7
 
 def print_summary(
     *,
     checklist,
-    detected_format: ImportFormat,
-    detection_confidence: str,
-    detection_evidence: str,
-    warnings: list[str],
+    inspection,
 ) -> None:
-    rule_count = sum(
-        len(stig.rules)
-        for stig in checklist.stigs
+    print("SAVE Checklist Inspection")
+    print("=" * 72)
+
+    print()
+    print("Checklist")
+    print("-" * 72)
+
+    print(f"Title:                {checklist.title or '<unspecified>'}")
+    print(f"Checklist UUID:       {checklist.checklist_uuid}")
+    print(f"Source format:        {checklist.checklist_format.value}")
+    print(
+        f"Source filename:      "
+        f"{checklist.source_filename or '<unknown>'}"
+    )
+    print(
+        f"Source SHA-256:       "
+        f"{checklist.source_sha256 or '<unknown>'}"
     )
 
-    status_counts = {
-        "open": 0,
-        "not_a_finding": 0,
-        "not_applicable": 0,
-        "not_reviewed": 0,
-    }
-
-    for stig in checklist.stigs:
-        for rule in stig.rules:
-            status_counts[rule.status.value] = (
-                status_counts.get(rule.status.value, 0) + 1
-            )
-
-    print("SAVE file Summary")
-    print(f"  Source file:          {checklist.source_filename}")
-    print(f"  Detected format:      {detected_format.value}")
-    print(f"  Detection confidence: {detection_confidence}")
-    print(f"  Detection evidence:   {detection_evidence}")
-    print(f"  Checklist UUID:       {checklist.checklist_uuid}")
-    print(f"  Source SHA-256:       {checklist.source_sha256}")
-    print(f"  Title:                {checklist.title or '<unspecified>'}")
-    print(f"  STIG count:           {len(checklist.stigs)}")
-    print(f"  Rule count:           {rule_count}")
-
     if checklist.asset:
+        print()
+        print("Target Asset")
+        print("-" * 72)
+
         print(
-            "  Target:               "
+            f"Host name:            "
             f"{checklist.asset.host_name or '<unspecified>'}"
         )
 
+        if checklist.asset.fqdn:
+            print(f"FQDN:                 {checklist.asset.fqdn}")
+
         if checklist.asset.ip_address:
-            print(f"  Target IP:            {checklist.asset.ip_address}")
+            print(f"IP address:           {checklist.asset.ip_address}")
 
     print()
-    print("Finding Status Totals")
-    print(f"  Open:                 {status_counts.get('open', 0)}")
-    print(
-        "  Not a Finding:        "
-        f"{status_counts.get('not_a_finding', 0)}"
-    )
-    print(
-        "  Not Applicable:       "
-        f"{status_counts.get('not_applicable', 0)}"
-    )
-    print(
-        "  Not Reviewed:         "
-        f"{status_counts.get('not_reviewed', 0)}"
-    )
+    print("Rule Summary")
+    print("-" * 72)
 
-    if warnings:
-        print()
-        print(f"Warnings ({len(warnings)}):")
+    print(f"STIG count:           {inspection.stig_count}")
+    print(f"Rule count:           {inspection.rule_count}")
+    print(f"Open:                 {inspection.open_count}")
+    print(f"Not a Finding:        {inspection.not_a_finding_count}")
+    print(f"Not Applicable:       {inspection.not_applicable_count}")
+    print(f"Not Reviewed:         {inspection.not_reviewed_count}")
 
-        for warning in warnings:
-            print(f"  - {warning}")
+    print()
+    print("Severity Summary")
+    print("-" * 72)
+
+    print(f"Critical:             {inspection.critical_count}")
+    print(f"High:                 {inspection.high_count}")
+    print(f"Medium:               {inspection.medium_count}")
+    print(f"Low:                  {inspection.low_count}")
+    print(f"Unknown:              {inspection.unknown_severity_count}")

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 
+from SAVE.cli.cli_common import ExitCode
 from SAVE.cli.parsers.import_options import build_import_options
 from SAVE.modules.importer.interface import (
     FormatDetectionError,
