@@ -66,6 +66,7 @@ def to_primitive(value: Any, *, omit_none: bool = False) -> Any:
 
 
 class ExportAvailableFormat(str, Enum):
+    CKL = ("ckl", {".ckl"})
     CKLB = ("cklb", {".cklb"})
     CSV = ("csv", {".csv"})
     NORMALIZED_JSON = ("normalized-json", {".json"})
