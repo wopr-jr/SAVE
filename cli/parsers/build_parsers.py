@@ -8,6 +8,9 @@ from SAVE.cli.parsers.export_options import (
 from SAVE.cli.parsers.import_options import (
     add_common_import_arguments,
 )
+from SAVE.cli.parsers.persistence_options import (
+    add_persistence_arguments,
+)
 from SAVE.cli.parsers.checklist_options import (
     add_checklist_reference_arguments,
 )
@@ -33,12 +36,26 @@ def add_inspect_parser(
 def add_import_parser(
     subparsers: argparse._SubParsersAction,
 ) -> argparse.ArgumentParser:
+    """
+    Add the `save import` command.
+
+    Workflow:
+
+        source file
+            -> unified importer
+            -> normalized Checklist
+            -> unified persistence store
+    """
     import_parser = subparsers.add_parser(
         "import",
-        help="Import and normalize a supported source file.",
+        help="Import, normalize, and persist a supported source file.",
     )
 
+    # Adds source plus CKL/CKLB/CSV/XCCDF import options.
     add_common_import_arguments(import_parser)
+
+    # Adds persistence target, database/store location, and write options.
+    add_persistence_arguments(import_parser)
 
     return import_parser
 

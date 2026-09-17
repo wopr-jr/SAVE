@@ -4,14 +4,11 @@ from enum import IntEnum
 class ExitCode(IntEnum):
     SUCCESS = 0
     WARNINGS = 1
-
-    # argparse normally uses exit code 2 for command-line usage errors.
     USAGE_ERROR = 2
-
     UNSUPPORTED_FORMAT = 3
     IMPORT_ERROR = 4
     EXPORT_ERROR = 5
-    DATABASE_ERROR = 6
+    PERSISTENCE_ERROR = 6
     INTERNAL_ERROR = 7
 
 def print_summary(
