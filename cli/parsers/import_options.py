@@ -1,5 +1,9 @@
 import argparse
 
+from SAVE.modules.importer.interface import (
+    ImportFormat,
+    ImportOptions,
+)
 def add_common_import_arguments(
     parser: argparse.ArgumentParser,
 ) -> None:
