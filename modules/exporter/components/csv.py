@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from SAVE.model.Checklist import Checklist
-from SAVE.common.export_common import ExportOptions
+from SAVE.modules.exporter.interface import ExportOptions
 
 CSV_COLUMNS = [
     "checklist_uuid",

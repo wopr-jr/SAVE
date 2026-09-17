@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from SAVE.model.Checklist import Checklist
-from SAVE.exporters.common import to_primitive
+from SAVE.modules.exporters.common.export_common import to_primitive
 
 
 NORMALIZED_SCHEMA_VERSION = "0.1"
