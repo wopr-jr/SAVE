@@ -1,5 +1,6 @@
 When adding new exporters:
     1. Define the exporter.
     2. Define the handler (see other exporters and exporter_common file for more info).
-    3. Add the exporter type to the 'ExportFormat' enum class in exporter_common file.
-    4. Add the expected file extention to the 
+    3. Add the exporter type and applicable file extention(s) to the 'ExportAvailableFormat' enum class in exporter_common file.
+    4. Import the exporter and handler to the 'export_stig' module and use the registration method to register the exporter with the default_export_service near the bottom.
+    

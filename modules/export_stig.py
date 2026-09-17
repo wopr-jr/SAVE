@@ -12,7 +12,7 @@ from SAVE.exporters.cklb import export_cklb, _cklb_export_handler
 from SAVE.exporters.csv import export_csv, _csv_export_handler
 from SAVE.exporters.normalized_json import export_normalized_json, _normalized_json_export_handler
 
-from SAVE.common.export_common import ExportFormat, ExportExtention
+from SAVE.common.export_common import ExportAvailableFormat, ExportExtention
 
 class ExportErrorBase(Exception):
     """Base exception for SAVE export failures."""
@@ -54,7 +54,7 @@ class ExportResult:
     """
 
     destination: Path
-    export_format: ExportFormat
+    export_format: ExportAvailableFormat
     bytes_written: int
     warnings: list[str] = field(default_factory=list)
 
@@ -84,7 +84,7 @@ class ExportService:
     """
 
     def __init__(self) -> None:
-        self._handlers: dict[ExportFormat, ExporterHandler] = {
+        self._handlers: dict[ExportAvailableFormat, ExporterHandler] = {
         }
 
     def export_file(
@@ -92,7 +92,7 @@ class ExportService:
         checklist: Any,
         destination: str | Path,
         *,
-        export_format: ExportFormat | str,
+        export_format: ExportAvailableFormat | str,
         options: ExportOptions | None = None,
     ) -> ExportResult:
         """
@@ -102,7 +102,7 @@ class ExportService:
             export_service.export_file(
                 checklist,
                 "output.cklb",
-                export_format=ExportFormat.CKLB,
+                export_format=ExportAvailableFormat.CKLB,
             )
         """
         options = options or ExportOptions()
@@ -153,7 +153,7 @@ class ExportService:
 
     def register_exporter(
         self,
-        export_format: ExportFormat,
+        export_format: ExportAvailableFormat,
         handler: ExporterHandler,
     ) -> None:
         """
@@ -161,7 +161,7 @@ class ExportService:
 
         Example:
             export_service.register_exporter(
-                ExportFormat.CKL,
+                ExportAvailableFormat.CKL,
                 export_ckl_adapter,
             )
         """
@@ -212,25 +212,43 @@ class ExportService:
 
             raise
 
-    @staticmethod
-    def _resolve_format(
-        export_format: ExportFormat | str,
-    ) -> ExportFormat:
-        if isinstance(export_format, ExportFormat):
-            return export_format
+@staticmethod
+def _resolve_format(
+    export_format: ExportAvailableFormat | str,
+) -> ExportAvailableFormat:
+    """
+    Resolve only canonical SAVE export-format names.
 
-        try:
-            return ExportFormat(export_format)
-        except ValueError as exc:
-            supported = ", ".join(
-                format_type.value
-                for format_type in ExportFormat
-            )
+    Accepted examples:
+        ExportAvailableFormat.CKLB
+        "cklb"
+        "csv"
+        "normalized-json"
+    """
+    if isinstance(export_format, ExportAvailableFormat):
+        return export_format
 
-            raise UnsupportedExportFormatError(
-                f"Unsupported output format {export_format!r}. "
-                f"Supported formats: {supported}."
-            ) from exc
+    if not isinstance(export_format, str):
+        raise UnsupportedExportFormatError(
+            f"Unsupported output format type: "
+            f"{type(export_format).__name__}."
+        )
+
+    requested = export_format.strip().lower()
+
+    for format_type in ExportAvailableFormat:
+        if requested == format_type.value.lower():
+            return format_type
+
+    supported = ", ".join(
+        format_type.value
+        for format_type in ExportAvailableFormat
+    )
+
+    raise UnsupportedExportFormatError(
+        f"Unsupported output format {export_format!r}. "
+        f"Supported formats: {supported}."
+    )
 
     @staticmethod
     def _validate_destination(
@@ -259,34 +277,37 @@ class ExportService:
         )
 
     @staticmethod
-    def _extension_warnings(
-        destination: Path,
-        export_format: ExportFormat,
-    ) -> list[str]:
-        
-        expected = ExportExtension(export_format)
-        suffix = destination.suffix.lower()
+def _extension_warnings(
+    destination: Path,
+    export_format: ExportAvailableFormat,
+) -> list[str]:
+    expected = {
+        extension.lower()
+        for extension in export_format.extensions
+    }
 
-        if suffix is not in expected
-            return [
-                f"Destination extension {suffix!r} does not normally match "
-                f"requested format {export_format.value!r}. Expected one of: "
-                f"{', '.join(sorted(expected))}."
-            ]
+    suffix = destination.suffix.lower()
 
-        return []
+    if suffix not in expected:
+        return [
+            f"Destination extension {suffix!r} does not normally match "
+            f"requested format {export_format.value!r}. Expected one of: "
+            f"{', '.join(sorted(expected))}."
+        ]
+
+    return []
 
 default_export_service = ExportService()
 
-default_export_service.register_exporter(ExportFormat.CKLB, _cklb_export_handler)
-default_export_service.register_exporter(ExportFormat.CSV, _csv_export_handler)
-default_export_service.register_exporter(ExportFormat.NORMALIZED_JSON, _normalized_json_export_handler)
+default_export_service.register_exporter(ExportAvailableFormat.CKLB, _cklb_export_handler)
+default_export_service.register_exporter(ExportAvailableFormat.CSV, _csv_export_handler)
+default_export_service.register_exporter(ExportAvailableFormat.NORMALIZED_JSON, _normalized_json_export_handler)
 
 def export_file(
     checklist: Any,
     destination: str | Path,
     *,
-    export_format: ExportFormat | str,
+    export_format: ExportAvailableFormat | str,
     options: ExportOptions | None = None,
 ) -> ExportResult:
     """
