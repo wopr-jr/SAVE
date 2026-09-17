@@ -11,15 +11,20 @@ from SAVE.cli.parsers.import_options import (
 from SAVE.cli.parsers.checklist_options import (
     add_checklist_reference_arguments,
 )
+from SAVE.cli.parsers.database_options import (
+    add_database_argument,
+)
+
 
 def add_inspect_parser(
     subparsers: argparse._SubParsersAction,
 ) -> argparse.ArgumentParser:
     inspect_parser = subparsers.add_parser(
         "inspect",
-        help="Inspect a previously stored normalized checklist.",
+        help="Inspect a stored normalized checklist.",
     )
 
+    add_database_argument(inspect_parser)
     add_checklist_reference_arguments(inspect_parser)
 
     return inspect_parser
