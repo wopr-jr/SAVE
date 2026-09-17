@@ -2,37 +2,47 @@ from __future__ import annotations
 
 import argparse
 
-from SAVE.cli.parsers.export_options import build_export_options
+from SAVE.cli.cli_common import *
 from SAVE.modules.exporter.interface import (
+    ExportAvailableFormat,
     ExportErrorBase,
-    DestinationExistsError,
-    ExportFormat,
-    UnsupportedExportFormatError,
     export_file,
 )
 
-def command_export_file(args: argparse.Namespace):
+
+def command_export_file(
+    *,
+    checklist,
+    args: argparse.Namespace,
+) -> int:
+    """
+    Export an already-normalized Checklist.
+
+    This function does not import source files or query a database.
+    """
     try:
-        export_checklist(
-            checklist=checklist,
-            destination=args.destination,
-            output_format=args.output_format,
+        export_result = export_file(
+            checklist,
+            args.destination,
+            export_format=ExportAvailableFormat(args.export_format),
+            options=build_export_options(args),
         )
 
-    except (OSError, ValueError) as exc:
-        print(f"Export failed: {exc}", file=sys.stderr)
-        return EXIT_EXPORT_ERROR
+    except ExportErrorBase as exc:
+        print(f"Export failed: {exc}")
+        return 5
 
-    print_summary(
-        checklist=checklist,
-        detected_format=result.detected_format,
-        detection_confidence=result.detection.confidence,
-        detection_evidence=result.detection.evidence,
-        warnings=result.warnings,
+    print(
+        f"Exported {export_result.export_format.value} file to "
+        f"{export_result.destination}"
     )
 
-    print()
-    print(f"Exported {args.output_format} to: {args.destination}")
+    print(
+        f"Bytes written: {export_result.bytes_written}"
+    )
+
+    for warning in export_result.warnings:
+        print(f"WARNING: {warning}")
 
     if args.fail_on_warning and result.warnings:
         return EXIT_WARNINGS

@@ -297,11 +297,30 @@ def _extension_warnings(
 
     return []
 
-default_export_service = ExportService()
+def create_default_export_service() -> ExportService:
+    """
+    Create an ExportService configured with all standard SAVE exporters.
+    """
+    service = ExportService()
 
-default_export_service.register_exporter(ExportAvailableFormat.CKLB, _cklb_export_handler)
-default_export_service.register_exporter(ExportAvailableFormat.CSV, _csv_export_handler)
-default_export_service.register_exporter(ExportAvailableFormat.NORMALIZED_JSON, _normalized_json_export_handler)
+    service.register_exporter(
+        ExportAvailableFormat.CKLB,
+        _cklb_export_handler,
+    )
+
+    service.register_exporter(
+        ExportAvailableFormat.CSV,
+        _csv_export_handler,
+    )
+
+    service.register_exporter(
+        ExportAvailableFormat.NORMALIZED_JSON,
+        _normalized_json_export_handler,
+    )
+
+    return service
+
+default_export_service = create_default_export_service()
 
 def export_file(
     checklist: Any,

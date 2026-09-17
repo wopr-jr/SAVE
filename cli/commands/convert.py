@@ -2,61 +2,30 @@
 
 import argparse
 
+from SAVE.cli.cli_common import *
 from SAVE.cli.parsers.export_options import build_export_options
 from SAVE.cli.parsers.import_options import build_import_options
-from SAVE.modules.importer.interface import (
-    FormatDetectionError,
-    ImportErrorBase,
-    ImportFormat,
-    ImportOptions,
-    UnsupportedFormatError,
-    import_file,
-)
-from SAVE.modules.exporter.interface import (
-    ExportErrorBase,
-    DestinationExistsError,
-    ExportFormat,
-    UnsupportedExportFormatError,
-    export_file,
-) 
-  
-   if args.command == "import":
-        command_import_file
-
-    if args.command == "inspect":
-        print_summary(
-            checklist=checklist,
-            detected_format=result.detected_format,
-            detection_confidence=result.detection.confidence,
-            detection_evidence=result.detection.evidence,
-            warnings=result.warnings,
-        )
-
-        return EXIT_WARNINGS if result.warnings else EXIT_SUCCESS
-
+from SAVE.modules.importer.interface import ImportErrorBase, import_file
+ 
+def command_convert_file(
+    args: argparse.Namespace,
+) -> int:
+    """
+    Import a source file, normalize it, and export it to a requested format.
+    """
     try:
-        export_checklist(
-            checklist=checklist,
-            destination=args.destination,
-            output_format=args.output_format,
+        import_result = import_file(
+            args.source,
         )
 
-    except (OSError, ValueError) as exc:
-        print(f"Export failed: {exc}", file=sys.stderr)
-        return EXIT_EXPORT_ERROR
+    except ImportErrorBase as exc:
+        print(f"Import failed: {exc}")
+        return EXIT_IMPORT_ERROR
 
-    print_summary(
-        checklist=checklist,
-        detected_format=result.detected_format,
-        detection_confidence=result.detection.confidence,
-        detection_evidence=result.detection.evidence,
-        warnings=result.warnings,
+    return command_export_file(
+        checklist=import_result.checklist,
+        args=args,
     )
 
-    print()
-    print(f"Exported {args.output_format} to: {args.destination}")
 
-    if args.fail_on_warning and result.warnings:
-        return EXIT_WARNINGS
-
-    return EXIT_SUCCESS
+        
