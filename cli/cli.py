@@ -4,16 +4,6 @@ import argparse
 import sys
 from pathlib import Path
 
-from SAVE.modules.import_stig import (
-    FormatDetectionError,
-    ImportErrorBase,
-    ImportFormat,
-    ImportOptions,
-    UnsupportedFormatError,
-    import_file,
-)
-
-
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()

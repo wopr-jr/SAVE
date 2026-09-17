@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 
 from SAVE.cli.parsers.import_options import build_import_options
-from SAVE.modules.import_stig import (
+from SAVE.modules.importer.interface import (
     FormatDetectionError,
     ImportErrorBase,
     ImportFormat,

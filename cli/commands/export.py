@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 
 from SAVE.cli.parsers.export_options import build_export_options
-from SAVE.modules.export_stig import (
+from SAVE.modules.exporter.interface import (
     ExportErrorBase,
     DestinationExistsError,
     ExportFormat,
