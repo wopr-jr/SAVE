@@ -7,9 +7,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Protocol
 from uuid import UUID
 
+from SAVE.modules.persistence.codec import ChecklistCodec
+
 if TYPE_CHECKING:
     from SAVE.modules.model import Checklist
-    from SAVE.modules.persistence.codec import ChecklistCodec
+    
 
 
 class PersistenceTarget(str, Enum):
