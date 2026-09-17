@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Protocol
 
 from SAVE.cli.commands.convert import command_convert_file
-from SAVE.cli.commands.import_file import command_import_file
+from SAVE.cli.commands.import import command_import_file
 from SAVE.cli.commands.inspect import command_inspect_stored_checklist
 
 from SAVE.cli.cli_common import ExitCode
